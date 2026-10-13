@@ -1,7 +1,3 @@
-from tkinter import CASCADE
-from app.models.db import db
-
-
 from app.models.db import db
 
 class Moodlist(db.Model):

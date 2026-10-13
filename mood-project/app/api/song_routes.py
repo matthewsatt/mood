@@ -1,94 +1,95 @@
 from flask import Blueprint, jsonify, request
+from flask_login import login_required, current_user
 from app.models import db, Moodlist, Song
-from flask_login import login_required
 from app.forms import AddSongForm, EditSongForm
+from .utils import validation_errors_to_error_messages, load_csrf_token
 
 song_routes = Blueprint("songs", __name__)
 
 
-def validation_errors_to_error_messages(validation_errors):
-    """
-    Simple function that turns the WTForms validation errors into a simple list
-    """
-    errorMessages = []
-    for field in validation_errors:
-        for error in validation_errors[field]:
-            errorMessages.append(f'{field} : {error}')
-    return errorMessages
+def own_song_or_404(id):
+    return Song.query.filter_by(id=id, userId=current_user.id).first_or_404()
 
 
+def owns_moodlist(moodlistId):
+    return Moodlist.query.filter_by(
+        id=moodlistId, userId=current_user.id).first() is not None
 
+
+# ALL OF THE CURRENT USER'S SONGS, FOR THE SEARCH BAR
 @song_routes.route("/search")
+@login_required
 def searchSongs():
-    songs = Song.query.all()
-    return jsonify(list(song.to_dict() for song in songs))
+    songs = Song.query.filter_by(userId=current_user.id).all()
+    return jsonify([song.to_dict() for song in songs])
 
 
 # GET ALL SONGS FOR SPECFIC MOOD LIST
 @song_routes.route("/moodlists/<int:moodlistId>")
-def getMoodlistSongs(moodlistId): # pass in MOODLIST.Id ONLY
-    songs = Song.query.filter(Song.moodlistId == moodlistId).all() #id OF MOODLIST
-    return jsonify(list(song.to_dict() for song in songs))
-    # return jsonify(list(songs.to_dict() for song in songs))
-
+@login_required
+def getMoodlistSongs(moodlistId):
+    Moodlist.query.filter_by(
+        id=moodlistId, userId=current_user.id).first_or_404()
+    songs = Song.query.filter_by(moodlistId=moodlistId).all()
+    return jsonify([song.to_dict() for song in songs])
 
 
 @song_routes.route("/new", methods=['POST'])
+@login_required
 def newSong():
     form = AddSongForm()
-    form['csrf_token'].data = request.cookies['csrf_token']
-
+    load_csrf_token(form)
     if form.validate_on_submit():
-        name = form.data["name"]
-        artist = form.data["artist"]
-        rating = form.data["rating"]
-        song_url = form.data["song_url"]
-        song_image = form.data["song_image"]
-        userId = form.data["userId"]
-        moodlistId = form.data['moodlistId']
-        new_song = Song(name=name, artist=artist, rating=rating, song_url=song_url, song_image=song_image, moodlistId=moodlistId, userId=userId)
-        print('..............', new_song)
+        if not owns_moodlist(form.data['moodlistId']):
+            return {'errors': ['moodlistId : Moodlist not found.']}, 404
+        new_song = Song(
+            name=form.data["name"],
+            artist=form.data["artist"],
+            rating=form.data["rating"],
+            song_url=form.data["song_url"] or None,
+            song_image=form.data["song_image"] or None,
+            moodlistId=form.data['moodlistId'],
+            userId=current_user.id)
         db.session.add(new_song)
         db.session.commit()
         return new_song.to_dict()
-    return {'errors': validation_errors_to_error_messages(form.errors)}, 401
-
+    return {'errors': validation_errors_to_error_messages(form.errors)}, 400
 
 
 @song_routes.route("/edit", methods=["PUT"])
+@login_required
 def changeSong():
-    data = request.json
-    song = Song.query.get(data['id'])
-    song.name = data['name']
-    song.artist = data['artist']
-    song.rating = data['rating']
-    # song.song_url = data['song_url']
-    # song.song_image = data['image_url']
-    song.userId = data['userId']
-    song.moodlistId = data['moodlistId']
-    db.session.commit()
-
-    return song.to_dict()
+    data = request.json or {}
+    song = own_song_or_404(data.get('id'))
+    form = EditSongForm()
+    load_csrf_token(form)
+    if form.validate_on_submit():
+        moodlistId = form.data['moodlistId'] or song.moodlistId
+        if not owns_moodlist(moodlistId):
+            return {'errors': ['moodlistId : Moodlist not found.']}, 404
+        song.name = form.data['name']
+        song.artist = form.data['artist']
+        song.rating = form.data['rating']
+        song.moodlistId = moodlistId
+        # Links are optional, so only touch them when the client sends them
+        for field in ('song_url', 'song_image'):
+            if field in data:
+                setattr(song, field, form.data[field] or None)
+        db.session.commit()
+        return song.to_dict()
+    return {'errors': validation_errors_to_error_messages(form.errors)}, 400
 
 
 @song_routes.route("/delete/<int:songId>", methods=["DELETE"])
+@login_required
 def removeSong(songId):
-    deleted_song = Song.query.filter(Song.id == songId).first()
-    print(deleted_song)
+    deleted_song = own_song_or_404(songId)
     db.session.delete(deleted_song)
     db.session.commit()
     return deleted_song.to_dict()
 
 
-
-
-@song_routes.route("/play/<int:songId>")
-def playSong(songId):
-    song = Song.query.filter(Song.id == songId).first()
-    return song.to_dict()
-
-
 @song_routes.route("/one/<int:songId>")
+@login_required
 def getOneSong(songId):
-    song = Song.query.get(songId)
-    return song.to_dict()
+    return own_song_or_404(songId).to_dict()

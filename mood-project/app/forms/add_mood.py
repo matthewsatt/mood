@@ -1,11 +1,9 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, IntegerField
-from app.models import Moodlist
-from wtforms.validators import DataRequired, ValidationError
+from wtforms import StringField, SubmitField
+from wtforms.validators import DataRequired, Length
 
 
 class AddMoodForm(FlaskForm):
-    name = StringField('name', validators=[DataRequired()])
-    color = StringField('color')
-    userId = IntegerField('userId')
+    name = StringField('name', validators=[DataRequired(), Length(max=40)])
+    color = StringField('color', validators=[Length(max=40)])
     submit = SubmitField('submit')

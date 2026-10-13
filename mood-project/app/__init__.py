@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, request, session, redirect
+from flask import Flask, request, redirect, abort
 from flask_cors import CORS
 from flask_migrate import Migrate
 from flask_wtf.csrf import CSRFProtect, generate_csrf
@@ -19,7 +19,13 @@ app = Flask(__name__)
 
 # Setup login manager
 login = LoginManager(app)
-login.login_view = 'auth.unauthorized'
+
+
+# Answer with a 401 instead of redirecting: a redirected PUT or DELETE gets
+# replayed against the redirect target and fails with a confusing 405.
+@login.unauthorized_handler
+def unauthorized():
+    return {'errors': ['Unauthorized']}, 401
 
 
 @login.user_loader
@@ -68,9 +74,24 @@ def inject_csrf_token(response):
     return response
 
 
+@app.route('/api/health')
+def health():
+    return {'status': 'ok'}
+
+
+@app.errorhandler(404)
+def not_found(e):
+    # The React app handles its own routes, so only /api/* paths are real 404s
+    if request.path.startswith('/api/'):
+        return {'errors': ['Not found']}, 404
+    return e
+
+
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def react_root(path):
+    if path.startswith('api/'):
+        abort(404)
     if path == 'favicon.ico':
         return app.send_static_file('favicon.ico')
     return app.send_static_file('index.html')
