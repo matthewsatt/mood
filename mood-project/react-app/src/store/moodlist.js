@@ -1,114 +1,56 @@
-const GET_ALL_MOODLISTS = 'moodlists/GET_ALL_MOODLISTS';
+import { request } from "./api";
 
-export const loadMoods = (moodlists) => {
-    return {
-        type: GET_ALL_MOODLISTS,
-        moodlists
-    }
-}
-export const loadUserMoods = (id) => async (dispatch) => {
+const LOAD_MOODLISTS = "moodlists/LOAD_MOODLISTS";
+const ADD_MOODLIST = "moodlists/ADD_MOODLIST";
+const EDIT_MOODLIST = "moodlists/EDIT_MOODLIST";
+const REMOVE_MOODLIST = "moodlists/REMOVE_MOODLIST";
 
-    const res = await fetch(`/api/moodlists/${id}`, {
-        // headers: {"Content-Type": "application/json"}
-    })
-    if (res.ok) {
-        const moods = await res.json();
-        dispatch(loadMoods(moods))
-        return moods
-    }
-}
-//-------------------------------------------------------------------//
-// const GET_MOODLIST = 'moodlist/GET_MOODLIST';
+const loadMoods = (moodlists) => ({ type: LOAD_MOODLISTS, moodlists });
+const addMood = (mood) => ({ type: ADD_MOODLIST, mood });
+const editMood = (mood) => ({ type: EDIT_MOODLIST, mood });
+const removeMood = (id) => ({ type: REMOVE_MOODLIST, id });
 
-//-------------------------------------------------------------------//
-const ADD_MOODLIST = 'moodlist/ADD_MOODLIST';
+// Every thunk resolves to { data } on success or { errors } on failure
 
-export const addMood = (mood) => {
-    return {
-        type: ADD_MOODLIST,
-        mood
-    }
-}
+export const loadUserMoods = () => async (dispatch) => {
+  const result = await request("/api/moodlists/");
+  if (result.data) dispatch(loadMoods(result.data));
+  return result;
+};
 
-export const addMoodList = (mood) => async (dispatch) =>{
-    const res = await fetch(`/api/moodlists/new`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(
-            mood
-        )
-    })
-    if (res.ok){
-        const newMood = await res.json();
-        dispatch(addMood(newMood.mood))
-        return newMood
-    }
-}
+export const addMoodList = (mood) => async (dispatch) => {
+  const result = await request("/api/moodlists/new", { method: "POST", body: mood });
+  if (result.data) dispatch(addMood(result.data.mood));
+  return result;
+};
 
-//-------------------------------------------------------------------//
-const EDIT_MOODLIST = 'moodlist/EDIT_MOODLIST';
+export const editMoodlist = (mood) => async (dispatch) => {
+  const result = await request("/api/moodlists/edit", { method: "PUT", body: mood });
+  if (result.data) dispatch(editMood(result.data));
+  return result;
+};
 
-export const editMood = (payload) => {
-    return {
-        type: EDIT_MOODLIST,
-        payload,
-    }
-}
-
-export const editMoodlist = (moodlist) => async (dispatch) =>{
-    const res = await fetch(`/api/moodlists/edit`, {
-        method: 'PUT',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(
-            moodlist
-        )
-    })
-    if (res.ok){
-        const changedMood = await res.json();
-        dispatch(editMood(changedMood))
-        return changedMood
-    }
-}
-//-------------------------------------------------------------------//
-const REMOVE_MOODLIST = 'moodlist/REMOVE_MOODLIST';
-
-const deleteMood = (moodlist) => {
-    return {
-        type: REMOVE_MOODLIST,
-        payload: moodlist,
-    }
-}
 export const deleteMoodlist = (id) => async (dispatch) => {
+  const result = await request(`/api/moodlists/${id}/delete`, { method: "DELETE" });
+  if (result.data) dispatch(removeMood(id));
+  return result;
+};
 
-    const res = await fetch(`/api/moodlists/${id}/delete`, {
-        method: 'DELETE',
-        headers: {'Content-Type': 'application/json'}
-    })
-    if(res.ok){
-        const moodlist = await res.json();
-        dispatch(deleteMood(moodlist))
-        return "Sucess"
-    } else {
-        return null;
-    }
-}
-//-------------------------------------------------------------------//
-const initialState = []
+const initialState = [];
+
 export default function moodlistReducer(state = initialState, action) {
- let newState;
-    switch (action.type) {
-        case GET_ALL_MOODLISTS:
-            return action.moodlists
-        case ADD_MOODLIST:
-            return [...state, action.mood];
-        case REMOVE_MOODLIST:
-            return state.filter((moodlist) => moodlist.id !== action.payload.id);
-        case EDIT_MOODLIST:
-            return{
-                ...state,
-                [action.payload.id]: action.payload
-            }
-        default:
-            return state
-    }
+  switch (action.type) {
+    case LOAD_MOODLISTS:
+      return action.moodlists;
+    case ADD_MOODLIST:
+      return [...state, { songCount: 0, ...action.mood }];
+    case EDIT_MOODLIST:
+      return state.map((mood) =>
+        mood.id === action.mood.id ? { ...mood, ...action.mood } : mood
+      );
+    case REMOVE_MOODLIST:
+      return state.filter((mood) => mood.id !== action.id);
+    default:
+      return state;
+  }
 }

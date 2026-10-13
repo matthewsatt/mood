@@ -5,6 +5,8 @@ import './index.css';
 import App from './App';
 import configureStore from './store';
 import { ModalProvider } from "./context/Modal";
+import { PlayerProvider } from "./context/Player";
+import { ToastProvider } from "./context/Toast";
 
 const store = configureStore();
 
@@ -12,9 +14,13 @@ ReactDOM.render(
   <React.StrictMode>
     <Provider store={store}>
       <ModalProvider>
-        <App />
+        <ToastProvider>
+          <PlayerProvider>
+            <App />
+          </PlayerProvider>
+        </ToastProvider>
       </ModalProvider>
-      </Provider>
+    </Provider>
   </React.StrictMode>,
   document.getElementById('root')
 );

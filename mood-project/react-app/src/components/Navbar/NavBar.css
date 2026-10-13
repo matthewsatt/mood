@@ -1,64 +1,76 @@
-
-.navbar-main {
-    display: flex;
-    text-decoration: none;
-
-    list-style: none;
-    list-style-type: none;
-    justify-content: space-between;
-    align-items: center;
-    background-color: black;
-    margin: 0px;
-    height: 20vh;
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: rgba(11, 12, 16, 0.85);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
 }
 
-.logo {
-    background-image: '.../public/logo.jpeg';
-
+.navbar__inner {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  height: var(--nav-height);
 }
 
-.moodlogoimage {
-    max-height: 100px;
-    max-width: 100px;
-    margin-left: 30px;
-    -webkit-filter: invert(1);
-    filter: invert(1);
+.navbar__brand {
+  font-size: 28px;
+  flex-shrink: 0;
 }
 
-
-.title {
-    font-weight: bold;
-    font-size: 80px;
-    color: white;
-    margin-right: 45%;
+.navbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
 }
 
-
-.moodlogoimage{
-    height: 150px;
-    border-radius: 5px;
-    margin-right: 40px;
+.navbar__user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-right: 4px;
 }
 
-.logged-in-nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 50%;
-    margin-right: 5%;
-
-
+.navbar__avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--brand-teal), var(--brand-blue));
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
 }
 
-.searchbox input {
-    max-width: 300px;
+.navbar__username {
+  font-size: 14px;
+  font-weight: 600;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.logout-button {
-    margin-left: 60%;
-    margin-top: 35px;
+@media (max-width: 720px) {
+  .navbar__inner {
+    gap: 12px;
+  }
+
+  .navbar__username {
+    display: none;
+  }
 }
 
-.searchit {
-    margin-left: 230%;
+@media (max-width: 560px) {
+  .navbar__actions .btn span {
+    display: none;
+  }
+
+  .navbar__actions .btn {
+    padding: 0 12px;
+  }
 }

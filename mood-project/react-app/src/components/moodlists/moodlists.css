@@ -1,124 +1,138 @@
-.moodlists {
-    background-color: whitesmoke;
-    display: flex;
-    justify-content: center;
-    flex-direction: column;
-    align-items: center;
+.mood-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-.moodlistcontent {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    height: 80vh;
+.mood-card {
+  position: relative;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  transition: transform 0.2s var(--ease), box-shadow 0.2s;
 }
 
-
-.moodboxes {
-    height: 100vw;
-    border-radius: 12px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    height: auto;
-   /* border: 2px solid blue; */
-   margin: 20px;
-   width: 300px;
-   size-adjust: auto;
-   background-color: #f96365
+/* Subtle sheen so flat gradients don't look like plain blocks */
+.mood-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 85% 0%, rgba(255, 255, 255, 0.25), transparent 55%);
+  pointer-events: none;
 }
 
-
-.eachmoodlist {
-    color: white;
-    text-decoration: none;
-    display: flex;
-    justify-content: center;
-    flex-direction: column;
-    align-items: center;
-    margin: 10%;
-    font-size: 50px;
-    height: 200px;
+.mood-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow);
 }
 
-.moodlistedit-delete {
-    display: flex;
-    align-self: auto;
-    display: flex;
-    font-size: 20px;
-    justify-content: space-evenly;
-    height: 100%;
-    width: 100%;
-    margin: 10px;
-    border-radius: 10px;
-    background-color: transparent;
-    border: 1px solid white;
-    color: white;
-    padding: 3px;
+.mood-card__link {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 160px;
+  padding: 18px;
 }
 
-
-.moodboxes:hover {
-    transition: 1s;
-    box-shadow: 0px 0px 10px 5px rgb(160, 160, 160);
-    color: black;
-    font-family: bold;
-    cursor: pointer;
+.mood-card__icon {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  color: rgba(255, 255, 255, 0.7);
 }
 
-.buttons-for-moodlists{
-    display: flex;
-    width: auto;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
+.mood-card__name {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.15);
 }
 
-
-.moodlistheader {
-    font-size: 50px;
-    margin-top: 20px;
+.mood-card__count {
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.8);
 }
 
-
-.textformoodlists{
-    text-decoration: none;
+.mood-card__actions {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 0.15s, transform 0.15s var(--ease);
 }
 
-
-.REDstyle{
-    background-color: #f96365
+.mood-card:hover .mood-card__actions,
+.mood-card:focus-within .mood-card__actions {
+  opacity: 1;
+  transform: none;
 }
 
-.greenstyle{
-    background-color: #90be6d;
+/* No hover on touch screens, so always show the actions there */
+@media (hover: none) {
+  .mood-card__actions {
+    opacity: 1;
+    transform: none;
+  }
 }
 
-
-.bluestyle{
-    background-color: #277da1;
+.mood-card__action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: var(--radius-full);
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(6px);
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.15s;
 }
 
-.purplestyle{
-    background-color: #8849b5;
+.mood-card__action:hover {
+  background: rgba(0, 0, 0, 0.55);
 }
 
-.blackstyle{
-    background-color: #f8961e
+/* Live preview in the create/edit modal */
+.mood-preview {
+  display: flex;
+  align-items: flex-end;
+  height: 96px;
+  padding: 16px;
+  border-radius: var(--radius);
 }
 
-.editmoodform {
-    display: flex;
-    justify-content: center;
-    flex-direction: column;
-    align-items: center;
-    padding: 20px;
+.mood-preview__name {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
 }
 
+@media (max-width: 480px) {
+  .mood-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
 
-.addmoodbutton {
+  .mood-card__link {
+    min-height: 130px;
+    padding: 14px;
+  }
+
+  .mood-card__name {
     font-size: 18px;
-    width:fit-content;
-    padding: 10px;
+  }
 }

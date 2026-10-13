@@ -1,142 +1,207 @@
-.homepagebuttons {
-    /* height: 100vh; */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 5px;
-
+.landing {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
 }
 
-
-
-.homepagelogin {
-    margin: 10px;
-    background-color: black;
-    color: white;
-    display: flex;
-    font-size: 20px;
-    text-decoration: none;
-    justify-content: center;
-    align-items: center;
-    height: 50px;
-    width: 200px;
-    border-radius: 40px;
-    border: 2px solid black;
-    font-size: 15px;
-
+/* Soft glow in the brand colors behind the hero */
+.landing::before {
+  content: "";
+  position: absolute;
+  top: -240px;
+  left: 50%;
+  width: 1100px;
+  height: 700px;
+  transform: translateX(-50%);
+  background:
+    radial-gradient(closest-side at 30% 50%, rgba(242, 95, 92, 0.16), transparent),
+    radial-gradient(closest-side at 70% 40%, rgba(36, 123, 160, 0.2), transparent),
+    radial-gradient(closest-side at 50% 70%, rgba(112, 193, 179, 0.12), transparent);
+  pointer-events: none;
 }
 
-
-
-
-.homepagesignup{
-    margin: 10px;
-    background-color: black;
-    color: white;
-    text-decoration: none;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 50px;
-    width: 200px;
-    border-radius: 40px;
-    border: 2px solid black;
-    font-size: 15px;
-
+.hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  align-items: center;
+  gap: 56px;
+  padding-top: 96px;
+  padding-bottom: 80px;
 }
 
-
-
-.homepagelogin:hover {
-    box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19);
-}
-.homepagesignup:hover{
-    box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19);
-}
-
-
-.personallinks {
-    display: inline-flex;
-    margin: 5px;
-    bottom: 0;
-    padding: 5px;
+.hero__badge {
+  display: inline-block;
+  margin-bottom: 20px;
+  padding: 6px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 500;
 }
 
-.moodhome {
-    background-image: url('../—Pngtree—creative\ curved\ music\ note\ border_6018241.png');
-    background-size: contain;
+.hero__title {
+  font-size: clamp(40px, 6vw, 68px);
+  font-weight: 800;
+  letter-spacing: -0.045em;
+  line-height: 1.02;
+}
 
-    display: flex;
-    justify-content: center;
+.hero__highlight {
+  background: linear-gradient(90deg, var(--brand-red), var(--brand-yellow) 35%, var(--brand-blue) 65%, var(--brand-teal));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.hero__lead {
+  max-width: 480px;
+  margin-top: 20px;
+  color: var(--text-muted);
+  font-size: 18px;
+  line-height: 1.6;
+}
+
+.hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 36px;
+}
+
+.hero__visual {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  transform: rotate(-4deg);
+}
+
+.hero__tile {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  aspect-ratio: 1;
+  padding: 14px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  animation: tile-float 6s ease-in-out infinite;
+}
+
+.hero__tile:nth-child(2n) {
+  transform: translateY(24px);
+  animation-delay: -3s;
+}
+
+.hero__tile-name {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.hero__tile-count {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+@keyframes tile-float {
+  50% { translate: 0 -6px; }
+}
+
+.features {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  padding-bottom: 96px;
+}
+
+.feature {
+  padding: 24px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.feature__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin-bottom: 16px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-3);
+  color: var(--brand-teal);
+}
+
+.feature__title {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.feature__text {
+  margin-top: 6px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.footer {
+  margin-top: auto;
+  border-top: 1px solid var(--border);
+  color: var(--text-subtle);
+  font-size: 14px;
+}
+
+.footer__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  height: 72px;
+}
+
+.footer__links {
+  display: flex;
+  gap: 20px;
+}
+
+.footer__links a {
+  color: var(--text-muted);
+  transition: color 0.15s;
+}
+
+.footer__links a:hover {
+  color: var(--text);
+}
+
+@media (max-width: 900px) {
+  .hero {
+    grid-template-columns: 1fr;
+    gap: 48px;
+    padding-top: 56px;
+  }
+
+  .hero__visual {
+    max-width: 480px;
+  }
+
+  .features {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero__actions .btn {
+    width: 100%;
+  }
+
+  .footer__inner {
     flex-direction: column;
-    align-items: center;
-    height: 60vh;
-}
-
-#homepagetitle {
-    font-size: 100px;
-}
-
-.homepagefooter {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: black;
-    height: 20vh;
-    position: bottom;
-}
-
-#github{
-    margin-left: 20px;
-    text-decoration: none;
-    color: white;
-    padding: 8px;
-    border: solid white 1px;
-    border-radius: 5px;
-
-}
-
-#linkedin {
-    margin-right: 20px;
-    text-decoration: none;
-    color: white;
-    padding: 8px;
-    border: solid white 1px;
-    border-radius: 5px;
-}
-
-#github:hover {
-    margin-bottom: 10px;
-    transition: 0.5s;
-}
-
-#linkedin:hover {
-    margin-bottom: 10px;
-    transition: 0.5s;
-}
-
-.me {
-    color:white;
-}
-
-
-.homebody {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
     justify-content: center;
-    margin-bottom: 8%;
-}
-
-#m {
-   color: #F25F5C
-}
-#o {
-    color:#FFE066
-}
-#o1 {
-    color:#247BA0
-}
-#d {
-    color:#70C1B3
+    height: auto;
+    padding: 20px 16px;
+  }
 }

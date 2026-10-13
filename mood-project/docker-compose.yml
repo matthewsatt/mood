@@ -1,0 +1,35 @@
+# Local development: `docker compose up --build`, then open http://localhost:8000
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: mood
+      POSTGRES_PASSWORD: mood
+      POSTGRES_DB: mood
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mood -d mood"]
+      interval: 2s
+      timeout: 5s
+      retries: 15
+
+  web:
+    build: .
+    command: ["sh", "docker-entrypoint.sh"]
+    environment:
+      DATABASE_URL: postgresql://mood:mood@db:5432/mood
+      SECRET_KEY: local-dev-secret-key
+      # In production mode the CSRF cookie is marked Secure, which some
+      # browsers won't send back over plain http://localhost.
+      FLASK_ENV: development
+      # gunicorn binds to 0.0.0.0:$PORT when PORT is set (Heroku sets it there)
+      PORT: 8000
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:

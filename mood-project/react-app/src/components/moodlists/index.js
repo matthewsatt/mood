@@ -1,182 +1,120 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Modal } from "../../context/Modal";
 import { Link } from "react-router-dom";
-import { editMoodlist } from "../../store/moodlist";
-// {import { loadMoodSongs } from "../../store/songs";}
-
 import { loadUserMoods, deleteMoodlist } from "../../store/moodlist";
-import AddFormModal from "../AddMood";
+import { useToast } from "../../context/Toast";
+import { ConfirmModal, Icon } from "../ui";
+import { moodStyle } from "../../utils/moodColors";
+import MoodFormModal from "./MoodFormModal";
 import "./moodlists.css";
-//moodlists
+
+const songCountLabel = (count = 0) => `${count} ${count === 1 ? "song" : "songs"}`;
+
 const Moodlists = () => {
   const dispatch = useDispatch();
-  const moodlists = useSelector((state) => Object.values(state.moodlists));
-  const user = useSelector(state => state.session.user)
-
-
-
-  const userId = useSelector((state) => state.session.user.id);
-  const [showModal, setShowModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [editName, setEditName] = useState("")
-  const [editColor, setEditColor] = useState("")
-  const [x, setX] = useState("");
-
-  const [editErrors, setErrors] = useState([])
-  useEffect(() => {
-    const editErrors = []
-    if (editName.length > 15) editErrors.push("The new name is too long")
-    setErrors(editErrors)
-  }, [editName])
+  const showToast = useToast();
+  const moodlists = useSelector((state) => state.moodlists);
+  const user = useSelector((state) => state.session.user);
+  const [loading, setLoading] = useState(true);
+  // null = closed, {} = creating, a moodlist = editing it
+  const [formMood, setFormMood] = useState(null);
+  const [deletingMood, setDeletingMood] = useState(null);
 
   useEffect(() => {
-    dispatch(loadUserMoods(userId));
-  }, [dispatch, showEditModal, showModal, userId]);
+    dispatch(loadUserMoods()).then(() => setLoading(false));
+  }, [dispatch]);
 
-
-  const handleEdit = async (e) => {
-    e.preventDefault();
-    const newmoodlist = {
-      id: x,
-      name: editName,
-      color: editColor,
-    };
-    await dispatch(editMoodlist(newmoodlist));
-
-    setShowEditModal(false);
-    await dispatch(loadUserMoods(userId));
+  const handleDelete = async () => {
+    const { errors } = await dispatch(deleteMoodlist(deletingMood.id));
+    setDeletingMood(null);
+    showToast(errors ? errors[0] : `Deleted “${deletingMood.name}”`);
   };
 
-
-  const handleShowModalData = (moodId, mood) => (e) => {
-    e.preventDefault();
-    setEditColor(mood.color)
-    setEditName(mood.name)
-    setX(+e.currentTarget.id);
-    setShowEditModal(true);
-  };
-
-  const handleDelete = async (e) => {
-    console.log('works')
-    e.preventDefault();
-    const id = e.target.id;
-    const res = await dispatch(deleteMoodlist(id));
-    if(res) {
-      const div = document.createElement("div")
-      const div2 = document.getElementById("alert")
-      let parentDiv = div2.parentNode
-      parentDiv.insertBefore(div,div2)
-      div.innerText = "Mood successfully Deleted"
-      div.style.color = "white"
-      div.style.backgroundColor = "rgba(229,30,80, 0.9)"
-      div.style.borderRadius = "10px"
-      div.style.position = "fixed"
-      div.style.top = "300px"
-      div.style.right = "20px"
-      div.style.fontSize = "18px"
-      div.style.fontWeight = "400"
-      div.style.padding = "15px"
-      setTimeout(() => div.remove(), 2000)
-    }
-
-  };
   return (
-    <>
-      <div className="moodlists">
-        <div id='alert'></div>
-        <h1 className="moodlistheader">{user.username}'s Moodlists</h1>
-        <div id="addamood">
-          <AddFormModal setShowModal={setShowModal} showModal={showModal} />
-        </div>
-        <div className="moodlistcontent">
-          {moodlists
-            ?.map((mood) => (
-              <>
-                <div className={`moodboxes ${mood.color}style`} key={mood.id}>
-                  <Link
-                    className="textformoodlists"
-                    to={`/moodlists/${mood.id}`}
-                  >
-                    <div className="eachmoodlist" key={mood?.id}>
-                      <p id="moodname">{mood?.name}</p>
-                    </div>
-                  </Link>
-                  <div className="buttons-for-moodlists">
-                    <button
-                      onClick={handleDelete}
-                      id={mood?.id}
-                      className="moodlistedit-delete"
-                    >
-                      Delete
-                    </button>
+    <main className="page">
+      <div className="container">
+        <header className="page-header">
+          <div>
+            <p className="eyebrow">Your library</p>
+            <h1 className="page-title">{user.username}'s moods</h1>
+            {!loading && (
+              <p className="page-subtitle">
+                {moodlists.length} {moodlists.length === 1 ? "moodlist" : "moodlists"}
+              </p>
+            )}
+          </div>
+          <button className="btn btn--primary" onClick={() => setFormMood({})}>
+            <Icon name="plus" size={16} />
+            New mood
+          </button>
+        </header>
 
-                    <button
-                      id={mood.id}
-                      className="moodlistedit-delete"
-                      onClick={handleShowModalData(mood.id, mood)}
-                    >
-                      Edit
-                    </button>
-                    {showEditModal && (
-                      <Modal onClose={() => setShowEditModal(false)}>
-                        <form className="edit" onSubmit={handleEdit}>
-                        <ul className="errors">
-                            {editErrors.length > 0 &&
-                              editErrors.map((error) => {
-                                return <li key={error}>{error}</li>;
-                              })}
-                          </ul>
-                          <div className="editmoodform">
-                          <h1 id="loginheader">Edit Mood</h1>
-                          <label>
-                            <input
-                              className="nameinput"
-                              placeholder="New Mood"
-                              type="text"
-                              value={editName}
-                              onChange={(e) => setEditName(e.target.value)}
-                            />
-                          </label>
-                          <select
-                            className="colorinput"
-                            value={editColor}
-                            onChange={(e) => setEditColor(e.target.value)}
-                          >
-                            <option className="REDstyle" value="red">
-                              Red
-                            </option>
-                            <option className="greenstyle" value="green">
-                              Green
-                            </option>
-                            <option className="bluestyle" value="blue">
-                              Blue
-                            </option>
-                            <option className="purplestyle" value="purple">
-                              Purple
-                            </option>
-                            <option className="blackstyle" value="black">
-                              Orange-Yellow
-                            </option>
-                          </select>
-                          <button
-                          disabled={editErrors.length > 0 ? true : false}
-                            type="submit"
-                          >
-                            Confirm
-                          </button>
-                          </div>
-                        </form>
-                      </Modal>
-                    )}
-                  </div>
+        {loading ? (
+          <div className="spinner" role="status" aria-label="Loading moods" />
+        ) : moodlists.length === 0 ? (
+          <div className="empty-state">
+            <span className="empty-state__icon">
+              <Icon name="layers" size={24} />
+            </span>
+            <h2>No moods yet</h2>
+            <p>Create your first moodlist to start organizing songs by feeling.</p>
+            <button className="btn btn--primary" onClick={() => setFormMood({})}>
+              <Icon name="plus" size={16} />
+              New mood
+            </button>
+          </div>
+        ) : (
+          <ul className="mood-grid">
+            {moodlists.map((mood) => (
+              <li key={mood.id} className="mood-card mood-gradient" style={moodStyle(mood.color)}>
+                <Link to={`/moodlists/${mood.id}`} className="mood-card__link">
+                  <Icon name="music" size={20} className="mood-card__icon" />
+                  <span className="mood-card__name">{mood.name}</span>
+                  <span className="mood-card__count">{songCountLabel(mood.songCount)}</span>
+                </Link>
+                <div className="mood-card__actions">
+                  <button
+                    className="mood-card__action"
+                    onClick={() => setFormMood(mood)}
+                    aria-label={`Edit ${mood.name}`}
+                    title="Edit"
+                  >
+                    <Icon name="edit" size={16} />
+                  </button>
+                  <button
+                    className="mood-card__action"
+                    onClick={() => setDeletingMood(mood)}
+                    aria-label={`Delete ${mood.name}`}
+                    title="Delete"
+                  >
+                    <Icon name="trash" size={16} />
+                  </button>
                 </div>
-              </>
-            ))
-            }
-        </div>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
-    </>
+
+      {formMood && (
+        <MoodFormModal mood={formMood.id ? formMood : null} onClose={() => setFormMood(null)} />
+      )}
+
+      {deletingMood && (
+        <ConfirmModal
+          title="Delete mood?"
+          message={
+            <>
+              <strong>{deletingMood.name}</strong> and its{" "}
+              {songCountLabel(deletingMood.songCount)} will be permanently deleted.
+            </>
+          }
+          onConfirm={handleDelete}
+          onClose={() => setDeletingMood(null)}
+        />
+      )}
+    </main>
   );
 };
+
 export default Moodlists;

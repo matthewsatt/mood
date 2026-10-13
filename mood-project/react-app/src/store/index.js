@@ -1,14 +1,18 @@
 import { createStore, combineReducers, applyMiddleware, compose } from 'redux';
 import thunk from 'redux-thunk';
-import session from './session'
+import session, { REMOVE_USER } from './session'
 import moodlistReducer from './moodlist';
 import songReducer from './songs';
 
-const rootReducer = combineReducers({
+const appReducer = combineReducers({
   session,
   "moodlists": moodlistReducer,
   "songs": songReducer
 });
+
+// Logging out clears everything, so the next user never sees stale data
+const rootReducer = (state, action) =>
+  appReducer(action.type === REMOVE_USER ? undefined : state, action);
 
 
 let enhancer;

@@ -1,4 +1,7 @@
 react-app/node_modules
+react-app/build
+app/static
+**/__pycache__
 .venv
 Pipfile
 Pipfile.lock

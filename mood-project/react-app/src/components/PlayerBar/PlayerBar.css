@@ -1,0 +1,182 @@
+.player-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 560px) minmax(0, 1fr);
+  align-items: center;
+  gap: 24px;
+  height: var(--player-height);
+  padding: 0 24px;
+  background: rgba(20, 21, 27, 0.92);
+  backdrop-filter: blur(16px);
+  border-top: 1px solid var(--border);
+  animation: player-in 0.3s var(--ease);
+}
+
+@keyframes player-in {
+  from { transform: translateY(100%); }
+}
+
+.player-bar__song {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.player-bar__art {
+  width: 52px;
+  height: 52px;
+}
+
+.player-bar__meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.player-bar__title,
+.player-bar__artist {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player-bar__title {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.player-bar__song:hover .player-bar__title {
+  text-decoration: underline;
+}
+
+.player-bar__artist {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.player-bar__artist--error {
+  color: var(--danger);
+}
+
+.player-bar__end {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* --- react-h5-audio-player, restyled to match ------------------------ */
+.player-bar .rhap_container {
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.player-bar .rhap_stacked-reverse .rhap_controls-section {
+  margin-bottom: 4px;
+}
+
+.player-bar .rhap_main-controls-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text);
+}
+
+.player-bar .rhap_play-pause-button {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--text);
+  color: var(--bg);
+  transition: transform 0.15s var(--ease);
+}
+
+.player-bar .rhap_play-pause-button:hover {
+  transform: scale(1.06);
+}
+
+.player-bar .rhap_volume-button {
+  display: flex;
+  align-items: center;
+  color: var(--text-muted);
+}
+
+.player-bar .rhap_volume-container {
+  flex-basis: 90px;
+}
+
+.player-bar .rhap_volume-bar,
+.player-bar .rhap_progress-bar {
+  height: 4px;
+  border-radius: var(--radius-full);
+  background: var(--surface-3);
+}
+
+.player-bar .rhap_volume-filled,
+.player-bar .rhap_progress-filled {
+  background: var(--text);
+  border-radius: var(--radius-full);
+}
+
+.player-bar .rhap_download-progress {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.player-bar .rhap_progress-indicator,
+.player-bar .rhap_volume-indicator {
+  width: 12px;
+  height: 12px;
+  margin-left: -6px;
+  top: -4px;
+  background: var(--text);
+  box-shadow: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.player-bar .rhap_progress-container:hover .rhap_progress-indicator,
+.player-bar .rhap_volume-bar-area:hover .rhap_volume-indicator {
+  opacity: 1;
+}
+
+.player-bar .rhap_progress-container {
+  height: 16px;
+}
+
+.player-bar .rhap_time {
+  min-width: 36px;
+  color: var(--text-subtle);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.player-bar .rhap_current-time {
+  text-align: right;
+}
+
+@media (max-width: 860px) {
+  .player-bar {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) auto;
+    gap: 12px;
+    padding: 0 16px;
+  }
+
+  .player-bar .rhap_volume-controls {
+    display: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .player-bar__art {
+    width: 44px;
+    height: 44px;
+  }
+
+  .player-bar .rhap_progress-section .rhap_time {
+    display: none;
+  }
+}

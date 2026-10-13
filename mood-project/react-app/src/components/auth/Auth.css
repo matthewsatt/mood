@@ -1,0 +1,128 @@
+.auth {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 16px 200px;
+  overflow: hidden;
+}
+
+/* Decorative keyboard along the bottom of the page */
+.auth__keys {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  gap: 4px;
+  height: 260px;
+  padding: 0 4px;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 70%);
+  mask-image: linear-gradient(to bottom, transparent, #000 70%);
+}
+
+.auth__key {
+  position: relative;
+  flex: 1;
+  border-radius: 0 0 10px 10px;
+  background: var(--surface-2);
+  transition: background 0.4s;
+}
+
+.auth__key--sharp::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: -22%;
+  z-index: 1;
+  width: 40%;
+  height: 58%;
+  border-radius: 0 0 8px 8px;
+  background: var(--bg);
+  pointer-events: none;
+}
+
+.auth__key:hover {
+  transition: background 0.05s;
+}
+
+.auth__key:nth-child(5n + 1):hover { background: #f96365; }
+.auth__key:nth-child(5n + 2):hover { background: #90be6d; }
+.auth__key:nth-child(5n + 3):hover { background: #3a9cc6; }
+.auth__key:nth-child(5n + 4):hover { background: #a066d3; }
+.auth__key:nth-child(5n + 5):hover { background: #f8a43a; }
+
+.auth__card {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 400px;
+  padding: 36px 32px 28px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  animation: modal-rise 0.35s var(--ease);
+}
+
+.auth__logo {
+  display: block;
+  margin-bottom: 24px;
+  font-size: 32px;
+}
+
+.auth__title {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.auth__subtitle {
+  margin: 6px 0 24px;
+  color: var(--text-muted);
+}
+
+.auth__divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-subtle);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.auth__divider::before,
+.auth__divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border-strong);
+}
+
+.auth__footer {
+  margin-top: 24px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.auth__footer a {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.auth__footer a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 480px) {
+  .auth__card {
+    padding: 28px 20px 24px;
+  }
+
+  .auth__keys {
+    height: 180px;
+  }
+}

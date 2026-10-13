@@ -1,60 +1,41 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { Redirect } from "react-router-dom";
+import { Link, Redirect } from "react-router-dom";
 import { signUp } from "../../store/session";
-import "./SignupForm.css";
+import { FormErrors } from "../ui";
+import AuthLayout from "./AuthLayout";
+
+const validate = ({ username, email, password, repeatPassword }) => {
+  const errors = [];
+  if (username.trim().length < 5) errors.push("Username must be at least 5 characters.");
+  if (username.trim().length > 30) errors.push("Username must be 30 characters or fewer.");
+  if (!/^[^@\s]+@[^@\s]+$/.test(email.trim())) errors.push("Enter a valid email address.");
+  if (password.length < 5) errors.push("Password must be at least 5 characters.");
+  if (repeatPassword !== password) errors.push("Passwords don't match.");
+  return errors;
+};
 
 const SignUpForm = () => {
+  const [values, setValues] = useState({ username: "", email: "", password: "", repeatPassword: "" });
   const [errors, setErrors] = useState([]);
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [repeatPassword, setRepeatPassword] = useState("");
-  const [showErrors, setShowErrors] = useState(false)
+  const [busy, setBusy] = useState(false);
   const user = useSelector((state) => state.session.user);
   const dispatch = useDispatch();
 
-  useEffect(() => {
-    setShowErrors(false)
-    const errors = [];
-    if (username.length < 5)
-      errors.push("Username must be at least 5 characters");
-    if (username.length > 30) errors.push("Username must be less than 30");
-    if (!email.includes("@")) errors.push("Must be a valid email.");
-    if (password.length < 5) errors.push("You must have a longer password");
-    if (repeatPassword !== password) errors.push("Passwords don't match");
-    setErrors(errors);
-  }, [username, password, email, password, repeatPassword]);
-
+  const update = (field) => (e) => setValues({ ...values, [field]: e.target.value });
 
   const onSignUp = async (e) => {
     e.preventDefault();
-    if(errors.length){
-      setShowErrors(true)
-    } else {
-      if (password === repeatPassword) {
-        const data = await dispatch(signUp(username, email, password));
-        if (data) {
-          setErrors(data);
-        }
-      }
+    const clientErrors = validate(values);
+    setErrors(clientErrors);
+    if (clientErrors.length) return;
+
+    setBusy(true);
+    const data = await dispatch(signUp(values.username.trim(), values.email.trim(), values.password));
+    if (data) {
+      setErrors(data);
+      setBusy(false);
     }
-  };
-
-  const updateUsername = (e) => {
-    setUsername(e.target.value);
-  };
-
-  const updateEmail = (e) => {
-    setEmail(e.target.value);
-  };
-
-  const updatePassword = (e) => {
-    setPassword(e.target.value);
-  };
-
-  const updateRepeatPassword = (e) => {
-    setRepeatPassword(e.target.value);
   };
 
   if (user) {
@@ -62,98 +43,68 @@ const SignUpForm = () => {
   }
 
   return (
-    <div>
-      <div class="container">
-        <div class="key white black" id="key1">
-          <h3></h3>
-        </div>
-        <div class="key white black" id="key2">
-          <h3></h3>
-        </div>
-        <div class="key white" id="key3">
-          <h3></h3>
-        </div>
-        <div class="key white black" id="key4">
-          <h3></h3>
-        </div>
-        <div class="key white black" id="key5">
-          <h3></h3>
-        </div>
-        <div class="key white black" id="key6">
-          <h3></h3>
-        </div>
-        <div class="key white" id="key7">
-          <h3></h3>
-        </div>
-        <div class="key white black" id="key8">
-          <h3></h3>
-        </div>
-        <div class="key white black" id="key9">
-          <h3></h3>
-        </div>
-        <div class="key white" id="key10">
-          <h3 id="key10"></h3>
-        </div>
-      </div>
-      <form onSubmit={onSignUp} className="signupuserform">
-        <div className="signupuser">
-          <div className="signupusercontent">
-            <div className="signinpageheader">mood</div>
-            <h4 id="signupdirection">Create your account</h4>
-            <div className="signuperrors">
-              {showErrors && errors.map((error, ind) => (
-                <div className="signuperror" key={ind}>
-                  {error}
-                </div>
-              ))}
-            </div>
-            <div className="signupinputfield">
-              <input
-                type="text"
-                placeholder="Username"
-                name="username"
-                onChange={updateUsername}
-                value={username}
-              ></input>
-            </div>
-            <div className="signupinputfield">
-              <input
-                type="text"
-                placeholder="Email"
-                name="email"
-                onChange={updateEmail}
-                value={email}
-              ></input>
-            </div>
-            <div className="signupinputfield">
-              <input
-                type="password"
-                placeholder="Password"
-                name="password"
-                onChange={updatePassword}
-                value={password}
-              ></input>
-            </div>
-            <div className="signupinputfield">
-              <input
-                type="password"
-                placeholder="Repeat Password"
-                name="repeat_password"
-                onChange={updateRepeatPassword}
-                value={repeatPassword}
-                required={true}
-              ></input>
-            </div>
-            <button
-              id="signupbutton"
-              type="submit"
-            >
-              Sign Up
-            </button>
-          </div>
-        </div>
+    <AuthLayout
+      title="Create your account"
+      subtitle="We'll start you off with three moods and a few songs."
+      footer={
+        <>
+          Already have an account? <Link to="/login">Log in</Link>
+        </>
+      }
+    >
+      <form onSubmit={onSignUp} className="form" noValidate>
+        <FormErrors errors={errors} />
+        <label className="field">
+          <span className="field__label">Username</span>
+          <input
+            className="input"
+            name="username"
+            autoComplete="username"
+            value={values.username}
+            onChange={update("username")}
+            autoFocus
+          />
+        </label>
+        <label className="field">
+          <span className="field__label">Email</span>
+          <input
+            className="input"
+            name="email"
+            type="email"
+            autoComplete="email"
+            placeholder="you@example.com"
+            value={values.email}
+            onChange={update("email")}
+          />
+        </label>
+        <label className="field">
+          <span className="field__label">Password</span>
+          <input
+            className="input"
+            name="password"
+            type="password"
+            autoComplete="new-password"
+            value={values.password}
+            onChange={update("password")}
+          />
+          <span className="field__hint">At least 5 characters.</span>
+        </label>
+        <label className="field">
+          <span className="field__label">Confirm password</span>
+          <input
+            className="input"
+            name="repeat_password"
+            type="password"
+            autoComplete="new-password"
+            value={values.repeatPassword}
+            onChange={update("repeatPassword")}
+          />
+        </label>
+        <button className="btn btn--primary btn--lg btn--block" type="submit" disabled={busy}>
+          {busy ? "Creating account…" : "Create account"}
+        </button>
       </form>
-    </div>
+    </AuthLayout>
   );
 };
 

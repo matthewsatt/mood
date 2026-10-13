@@ -1,36 +1,43 @@
-
 import React from 'react';
 import { useSelector } from 'react-redux';
-import { NavLink } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import LogoutButton from '../auth/LogoutButton';
 import SearchBar from '../SearchBar';
+import { Wordmark } from '../ui';
 import './NavBar.css'
 
 const NavBar = () => {
   const user = useSelector((state) => state.session.user);
+
   return (
-    <nav className='navbar'>
-      <div className='navbar-main'>
-        <div className='home-page-logo'>
-          <NavLink to='/' exact={true} activeClassName='active'>
-           <img className="moodlogoimage" alt='whatever' src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQE04ozIKvVCBiRbRYzCBhr6w5AInT7-ue1GA&usqp=CAU" />
-          </NavLink>
-        </div>
-        {user && (
-        <div className='searchbox'>
-          <SearchBar />
-        </div>
-        )}
-        <h1 className='title'>mood</h1>
-        {user &&
-        <div className='logged-in-nav'>
-        <div className='logout-button'>
-          <LogoutButton />
-        </div>
-        </div>
-        }
+    <header className='navbar'>
+      <div className='container navbar__inner'>
+        <Link to={user ? '/' : '/home'} className='navbar__brand' aria-label='mood home'>
+          <Wordmark />
+        </Link>
+
+        {user && <SearchBar />}
+
+        <nav className='navbar__actions'>
+          {user ? (
+            <>
+              <span className='navbar__user'>
+                <span className='navbar__avatar' aria-hidden='true'>
+                  {user.username[0].toUpperCase()}
+                </span>
+                <span className='navbar__username'>{user.username}</span>
+              </span>
+              <LogoutButton />
+            </>
+          ) : (
+            <>
+              <Link to='/login' className='btn btn--ghost'>Log in</Link>
+              <Link to='/sign-up' className='btn btn--primary'>Sign up</Link>
+            </>
+          )}
+        </nav>
       </div>
-    </nav>
+    </header>
   );
 }
 

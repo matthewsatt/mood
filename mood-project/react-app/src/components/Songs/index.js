@@ -1,209 +1,203 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { loadMoodSongs, removeMoodSong } from "../../store/songs";
 import { loadUserMoods } from "../../store/moodlist";
-import { Modal } from "../../context/Modal";
-import { editSong } from "../../store/songs";
+import { usePlayer } from "../../context/Player";
+import { useToast } from "../../context/Toast";
+import { ConfirmModal, Icon, Rating } from "../ui";
+import { moodStyle } from "../../utils/moodColors";
+import SongFormModal from "./SongFormModal";
 import "./Songs.css";
-import { Link } from "react-router-dom";
-import AddSongForm from "../AddSong";
-import Player from "../SongPlayer";
+
+const songCountLabel = (count) => `${count} ${count === 1 ? "song" : "songs"}`;
+
+const Equalizer = () => (
+  <span className="equalizer" aria-label="Now playing">
+    <span />
+    <span />
+    <span />
+  </span>
+);
 
 const Songs = () => {
   const dispatch = useDispatch();
+  const showToast = useToast();
+  const { current, isPlaying, toggle, songRemoved } = usePlayer();
+  const moodlistId = Number(useParams().moodId);
   const songs = useSelector((state) => state.songs);
-  const user = useSelector((state) => state.session.user.id);
-  const moodlists = useSelector((state) => Object.values(state.moodlists));
-  const moodlistId = useParams();
-  const {moodid} = useParams()
-  const moodName = moodlists.find(name => name.id === +moodlistId.moodId)
-
-  const [addSongModal, setAddSongModal] = useState(false);
-  const [editSongModal, setEditSongModal] = useState(false);
-  const [editSongErrors, setEditSongErrors] = useState([]);
-  const [editId, setEditId] = useState("");
-  const [editName, setEditName] = useState("");
-  const [editArtist, setEditArtist] = useState("");
-  const [editRating, setEditRating] = useState(1);
-  const [editUserId, setEditUserId] = useState("");
+  const mood = useSelector((state) => state.moodlists.find((m) => m.id === moodlistId));
+  const [status, setStatus] = useState("loading");
+  // null = closed, {} = adding, a song = editing it
+  const [formSong, setFormSong] = useState(null);
+  const [deletingSong, setDeletingSong] = useState(null);
 
   useEffect(() => {
-    const editSongErrors = [];
-    if (editName.length > 30)
-      editSongErrors.push("Name must not be longer than 30 characters");
-    if (editName.length < 3)
-      editSongErrors.push("Name must not be shorter than 3 characters");
-    if (editArtist.length > 20)
-      editSongErrors.push("I said an artist not a book");
-    if (editArtist.length < 1) editSongErrors.push("Must include an artist");
-    if (editRating < 0) editSongErrors.push("Song rating must be at least 1");
-    if (editRating > 10) editSongErrors.push("Song rating must be 10 or less");
-    setEditSongErrors(editSongErrors);
-  }, [editName, editArtist, editRating, editUserId, moodlistId]);
-
-  const handleShowModalData = (song) => async (e) => {
-    e.preventDefault();
-    setEditId(song.id);
-    setEditName(song.name);
-    setEditArtist(song.artist);
-    setEditRating(song.rating);
-    setEditUserId(song.userId);
-    setEditSongModal(true);
-  };
-  const handleEdit = async (e) => {
-    e.preventDefault();
-    const song = {
-      id: editId,
-      name: editName,
-      artist: editArtist,
-      rating: editRating,
-      moodlistId: Number(moodlistId["moodId"]),
-      userId: user,
+    let active = true;
+    setStatus("loading");
+    Promise.all([dispatch(loadMoodSongs(moodlistId)), dispatch(loadUserMoods())]).then(
+      ([{ errors }]) => active && setStatus(errors ? "notfound" : "ready")
+    );
+    return () => {
+      active = false;
     };
-    await dispatch(editSong(song));
-    setEditSongModal(false);
-    dispatch(loadMoodSongs(moodlistId.moodId));
+  }, [dispatch, moodlistId]);
+
+  const handleDelete = async () => {
+    const { errors } = await dispatch(removeMoodSong(deletingSong.id));
+    if (!errors) songRemoved(deletingSong.id);
+    setDeletingSong(null);
+    showToast(errors ? errors[0] : `Removed “${deletingSong.name}”`);
   };
 
-  const handleDelete = async (e) => {
-    e.preventDefault();
-    await dispatch(removeMoodSong(e.target.id));
-    return;
-  };
+  if (status === "loading") {
+    return <div className="spinner" role="status" aria-label="Loading songs" />;
+  }
 
-  useEffect(() => {
-    dispatch(loadMoodSongs(moodlistId.moodId));
-  }, [dispatch]);
-
-  if (user === songs[0]?.userId || moodlists[0]?.userId === user) {
+  if (status === "notfound" || !mood) {
     return (
-      <div className="songscontainer">
-        <div className="moodlist-songs">
-          <h1 className="moodlistsongtitle">{moodName?.name} Songs</h1>
-          <button
-            value={addSongModal}
-            onClick={(e) => setAddSongModal(true)}
-            className="addmoodbutton"
-          >
-            Add Song
-          </button>
-          {addSongModal && (
-            <AddSongForm
-              addSongModal={addSongModal}
-              setAddSongModal={setAddSongModal}
-            />
-          )}
-          {songs
-            .map((song) => (
-              <div className="eachsong" id={song.id} key={song.id}>
-                <div className="titleandartist">
-                  <Link className="linktosinglesong" to={`/songs/${song.id}`}>
-                    <div className="leftlink">
-                      <div className="songName">
-                        <h2 song={song} key={song.name}>
-                          {song.name}
-                        </h2>
-                      </div>
-                      <div className="songArtist">
-                        <h3 song={song}>{song.artist}</h3>
-                      </div>
-                      <div className="songratingdiv">
-                        {Array(song.rating).fill(<p>⭐️</p>)}
-                      </div>
-                    </div>
-                    {/* <div className="rightlink">
-                      <div className="songImage">
-                        {song.song_image && (
-                          <img id="songlistimage" src={song.song_image}></img>
-                        )}
-                      </div>
-                    </div> */}
-                  </Link>
-                </div>
-
-                <div className="songuseroptions">
-                  <div className="songdetails" key={song.id}>
-                    <Player prop={song.song_url} />
-                  </div>
-                  <div className="songcrudbuttons">
-                    <button
-                      id={song.id}
-                      onClick={handleDelete}
-                      className="songeditdeletebuttons"
-                    >
-                      Delete Song
-                    </button>
-
-                    <button
-                      id={song.id}
-                      className="songeditdeletebuttons"
-                      onClick={handleShowModalData(song)}
-                    >
-                      Edit Song
-                    </button>
-                  </div>
-                  {editSongModal && (
-                    <Modal onClose={() => setEditSongModal(false)}>
-                      <form className="editsongmodel" onSubmit={handleEdit}>
-                        <ul className="errors">
-                          {editSongErrors.length > 0 &&
-                            editSongErrors.map((error) => {
-                              return <li key={error}>{error}</li>;
-                            })}
-                        </ul>
-                        <div className="editsongform">
-                          <h1 id="addsongtitle">Edit Song Details</h1>
-                          <div>Title</div>
-                          <label>
-                            <input
-                              className="songinfo"
-                              type="text"
-                              value={editName}
-                              onChange={(e) => setEditName(e.target.value)}
-                            />
-                          </label>
-                          Artist
-                          <label>
-                            <div></div>
-                            <input
-                              className="songinfo"
-                              type="text"
-                              value={editArtist}
-                              onChange={(e) => setEditArtist(e.target.value)}
-                            />
-                          </label>
-                          Rating
-                          <label>
-                            <input
-                              className="songinfo"
-                              type="number"
-                              min={1}
-                              max={10}
-                              value={editRating}
-                              onChange={(e) => setEditRating(e.target.value)}
-                            />
-                          </label>
-                          <button
-                            disabled={editSongErrors.length > 0 ? true : false}
-                            className="modaleditsong"
-                            type="submit"
-                          >
-                            Change
-                          </button>
-                        </div>
-                      </form>
-                    </Modal>
-                  )}
-                </div>
-              </div>
-            ))
-            .reverse()}
+      <main className="page">
+        <div className="container">
+          <div className="empty-state">
+            <h2>Moodlist not found</h2>
+            <p>It may have been deleted, or it belongs to someone else.</p>
+            <Link to="/" className="btn btn--secondary">Back to your moods</Link>
+          </div>
         </div>
-      </div>
+      </main>
     );
   }
-  return <h1>Not Authorized</h1>;
+
+  // Newest first, so a song you just added shows up at the top
+  const ordered = [...songs].reverse();
+  const firstPlayable = ordered.find((song) => song.song_url);
+
+  return (
+    <main className="page">
+      <div className="container">
+        <Link to="/" className="back-link">
+          <Icon name="arrowLeft" size={16} />
+          All moods
+        </Link>
+
+        <header className="mood-hero mood-gradient" style={moodStyle(mood.color)}>
+          <p className="mood-hero__eyebrow">Moodlist</p>
+          <h1 className="mood-hero__title">{mood.name}</h1>
+          <p className="mood-hero__meta">{songCountLabel(songs.length)}</p>
+        </header>
+
+        <div className="toolbar">
+          <button
+            className="toolbar__play"
+            onClick={() => toggle(firstPlayable)}
+            disabled={!firstPlayable}
+            aria-label={`Play ${mood.name}`}
+          >
+            <Icon name="play" size={22} />
+          </button>
+          <button className="btn btn--secondary" onClick={() => setFormSong({})}>
+            <Icon name="plus" size={16} />
+            Add song
+          </button>
+        </div>
+
+        {songs.length === 0 ? (
+          <div className="empty-state">
+            <span className="empty-state__icon">
+              <Icon name="music" size={24} />
+            </span>
+            <h2>This mood is empty</h2>
+            <p>Add a song that fits the feeling.</p>
+            <button className="btn btn--primary" onClick={() => setFormSong({})}>
+              <Icon name="plus" size={16} />
+              Add song
+            </button>
+          </div>
+        ) : (
+          <>
+            <div className="song-list__head" aria-hidden="true">
+              <span>#</span>
+              <span>Title</span>
+              <span>Rating</span>
+              <span />
+            </div>
+            <ol className="song-list">
+              {ordered.map((song, i) => {
+                const isCurrent = current && current.id === song.id;
+                const showPause = isCurrent && isPlaying;
+                return (
+                  <li key={song.id} className={`song-row ${isCurrent ? "song-row--current" : ""}`}>
+                    <div className="song-row__index">
+                      <span className="song-row__number">{showPause ? <Equalizer /> : i + 1}</span>
+                      <button
+                        className="song-row__play"
+                        onClick={() => toggle(song)}
+                        disabled={!song.song_url}
+                        aria-label={`${showPause ? "Pause" : "Play"} ${song.name}`}
+                        title={song.song_url ? undefined : "No audio link"}
+                      >
+                        <Icon name={showPause ? "pause" : "play"} size={14} />
+                      </button>
+                    </div>
+                    <div className="song-row__main">
+                      <Link to={`/songs/${song.id}`} className="song-row__title">
+                        {song.name}
+                      </Link>
+                      <span className="song-row__artist">
+                        {song.artist}
+                        {!song.song_url && <span className="song-row__badge">No audio</span>}
+                      </span>
+                    </div>
+                    <Rating value={song.rating} />
+                    <div className="song-row__actions">
+                      <button
+                        className="icon-btn"
+                        onClick={() => setFormSong(song)}
+                        aria-label={`Edit ${song.name}`}
+                        title="Edit"
+                      >
+                        <Icon name="edit" size={16} />
+                      </button>
+                      <button
+                        className="icon-btn icon-btn--danger"
+                        onClick={() => setDeletingSong(song)}
+                        aria-label={`Delete ${song.name}`}
+                        title="Delete"
+                      >
+                        <Icon name="trash" size={16} />
+                      </button>
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
+          </>
+        )}
+      </div>
+
+      {formSong && (
+        <SongFormModal
+          song={formSong.id ? formSong : null}
+          moodlistId={moodlistId}
+          onClose={() => setFormSong(null)}
+        />
+      )}
+
+      {deletingSong && (
+        <ConfirmModal
+          title="Remove song?"
+          message={
+            <>
+              <strong>{deletingSong.name}</strong> will be removed from {mood.name}.
+            </>
+          }
+          confirmLabel="Remove"
+          onConfirm={handleDelete}
+          onClose={() => setDeletingSong(null)}
+        />
+      )}
+    </main>
+  );
 };
-// return <h1>Not Authorized</h1>
+
 export default Songs;

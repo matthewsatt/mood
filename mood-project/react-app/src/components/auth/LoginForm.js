@@ -1,38 +1,32 @@
 import React, { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { Redirect, useHistory } from "react-router-dom";
-import * as sessionActions from "../../store/session";
+import { Link, Redirect } from "react-router-dom";
 import { login } from "../../store/session";
-import "./LoginForm.css";
-const LoginForm = () => {
-  const history = useHistory();
+import { FormErrors } from "../ui";
+import AuthLayout from "./AuthLayout";
 
+export const DEMO_USER = { email: "demo@aa.io", password: "password" };
+
+const LoginForm = () => {
   const [errors, setErrors] = useState([]);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
   const user = useSelector((state) => state.session.user);
   const dispatch = useDispatch();
 
-  const onLogin = async (e) => {
-    e.preventDefault();
-    const data = await dispatch(login(email, password));
+  const submit = async (credentials) => {
+    setBusy(true);
+    const data = await dispatch(login(credentials.email, credentials.password));
     if (data) {
       setErrors(data);
+      setBusy(false);
     }
   };
 
-  const handleDemo = async (e) => {
+  const onLogin = (e) => {
     e.preventDefault();
-    await dispatch(sessionActions.login("demo@aa.io", "password"));
-    history.push("/");
-  };
-
-  const updateEmail = (e) => {
-    setEmail(e.target.value);
-  };
-
-  const updatePassword = (e) => {
-    setPassword(e.target.value);
+    submit({ email, password });
   };
 
   if (user) {
@@ -40,85 +34,58 @@ const LoginForm = () => {
   }
 
   return (
-    <div>
-      <div class="container">
-        <div class="key white black" id="key1">
-          <h3></h3>
-        </div>
-        <div class="key white black" id="key2">
-          <h3></h3>
-        </div>
-        <div class="key white" id="key3">
-          <h3></h3>
-        </div>
-        <div class="key white black" id="key4">
-          <h3></h3>
-        </div>
-        <div class="key white black" id="key5">
-          <h3></h3>
-        </div>
-        <div class="key white black" id="key6">
-          <h3></h3>
-        </div>
-        <div class="key white" id="key7">
-          <h3></h3>
-        </div>
-        <div class="key white black" id="key8">
-          <h3></h3>
-        </div>
-        <div class="key white black" id="key9">
-          <h3></h3>
-        </div>
-        <div class="key white" id="key10">
-          <h3 id="key10"></h3>
-        </div>
-      </div>
-      <form onSubmit={onLogin} className="loginuserform">
-        <div className="loginuserformcontent">
-          <div className="loginpageheader">mood</div>
-          <div className="loginerrorx">
-            {errors.map((error, ind) => (
-              <div className="loginerror" key={ind}>
-                {error}
-              </div>
-            ))}
-          </div>
-          <div className="loginformcontainer">
-            <h4 id="logindirection">Login to your account</h4>
-            <div className="emailcontainer">
-              <div className="emailinput">
-                <input
-                  name="email"
-                  placeholder="Email"
-                  type="text"
-                  value={email}
-                  onChange={updateEmail}
-                />
-              </div>
-            </div>
-
-            <div className="passwordcontainer">
-              <label id="labelforemail" htmlFor="password"></label>
-              <input
-                name="password"
-                placeholder="Password"
-                type="password"
-                value={password}
-                onChange={updatePassword}
-              />
-            </div>
-            <div className="loginbuttoncontainer">
-              <button id="loginbutton" type="submit">
-                Login
-              </button>
-              <button id="logindemobutton" onClick={handleDemo}>
-                Demo
-              </button>
-            </div>
-          </div>
-        </div>
+    <AuthLayout
+      title="Welcome back"
+      subtitle="Log in to get back to your moods."
+      footer={
+        <>
+          New to mood? <Link to="/sign-up">Create an account</Link>
+        </>
+      }
+    >
+      <form onSubmit={onLogin} className="form" noValidate>
+        <FormErrors errors={errors} />
+        <label className="field">
+          <span className="field__label">Email</span>
+          <input
+            className="input"
+            name="email"
+            type="email"
+            autoComplete="email"
+            placeholder="you@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            autoFocus
+            required
+          />
+        </label>
+        <label className="field">
+          <span className="field__label">Password</span>
+          <input
+            className="input"
+            name="password"
+            type="password"
+            autoComplete="current-password"
+            placeholder="••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </label>
+        <button className="btn btn--primary btn--lg btn--block" type="submit" disabled={busy}>
+          {busy ? "Logging in…" : "Log in"}
+        </button>
+        <div className="auth__divider">or</div>
+        <button
+          className="btn btn--secondary btn--lg btn--block"
+          type="button"
+          onClick={() => submit(DEMO_USER)}
+          disabled={busy}
+        >
+          Continue as demo user
+        </button>
       </form>
-    </div>
+    </AuthLayout>
   );
 };
 

@@ -121,6 +121,16 @@ To install mood on your local machine please clone the project repository.
   
   •  `npm start` within the frontend directory(mood-project/react-app) under localhost:3000
   
+### Running with Docker
+
+With [Docker Desktop](https://www.docker.com/products/docker-desktop/) running, from `mood-project/`:
+
+  •  `docker compose up --build`
+
+  •  Open http://localhost:8000 and log in as `demo@aa.io` / `password`
+
+The first start builds the React app, runs the migrations, and seeds a Postgres container. Data persists between runs; `docker compose down -v` wipes it.
+
 ## Development 
 This project was developed by a single developer (Matthew Satterwhite).
 

@@ -1,6 +1,8 @@
+import { request } from "./api";
+
 // constants
 const SET_USER = 'session/SET_USER';
-const REMOVE_USER = 'session/REMOVE_USER';
+export const REMOVE_USER = 'session/REMOVE_USER';
 
 const setUser = (user) => ({
   type: SET_USER,
@@ -14,87 +16,38 @@ const removeUser = () => ({
 const initialState = { user: null };
 
 export const authenticate = () => async (dispatch) => {
-  const response = await fetch('/api/auth/', {
-    headers: {
-      'Content-Type': 'application/json'
-    }
-  });
-  if (response.ok) {
-    const data = await response.json();
-    if (data.errors) {
-      return;
-    }
-  
+  const { data } = await request('/api/auth/');
+  if (data && !data.errors) {
     dispatch(setUser(data));
   }
 }
 
+// login and signUp resolve to null on success, or a list of error messages
 export const login = (email, password) => async (dispatch) => {
-  const response = await fetch('/api/auth/login', {
+  const { data, errors } = await request('/api/auth/login', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      email,
-      password
-    })
+    body: { email, password },
   });
-  
-  
-  if (response.ok) {
-    const data = await response.json();
-    dispatch(setUser(data))
-    return null;
-  } else if (response.status < 500) {
-    const data = await response.json();
-    if (data.errors) {
-      return data.errors;
-    }
-  } else {
-    return ['An error occurred. Please try again.']
-  }
-
+  if (errors) return errors;
+  dispatch(setUser(data));
+  return null;
 }
 
 export const logout = () => async (dispatch) => {
-  const response = await fetch('/api/auth/logout', {
-    headers: {
-      'Content-Type': 'application/json',
-    }
-  });
-
-  if (response.ok) {
+  const { errors } = await request('/api/auth/logout');
+  if (!errors) {
     dispatch(removeUser());
   }
 };
 
-
 export const signUp = (username, email, password) => async (dispatch) => {
-  const response = await fetch('/api/auth/signup', {
+  const { data, errors } = await request('/api/auth/signup', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      username,
-      email,
-      password,
-    }),
+    body: { username, email, password },
   });
-  
-  if (response.ok) {
-    const data = await response.json();
-    dispatch(setUser(data))
-    return null;
-  } else if (response.status < 500) {
-    const data = await response.json();
-    if (data.errors) {
-      return data.errors;
-    }
-  } else {
-    return ['An error occurred. Please try again.']
-  }
+  if (errors) return errors;
+  dispatch(setUser(data));
+  return null;
 }
 
 export default function reducer(state = initialState, action) {
